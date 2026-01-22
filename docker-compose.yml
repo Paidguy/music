@@ -5,10 +5,20 @@ services:
     ports:
       - "4533:4533"
     environment:
+      # Existing settings...
       ND_SCANSCHEDULE: 1h
       ND_LOGLEVEL: info
       ND_BASEURL: "https://paidguy.duckdns.org"
-      ND_ENABLETRANSCODINGCONFIG: "true"
+      
+      # --- NEW PERFORMANCE SETTINGS ---
+      # Cache images in memory so scrolling is instant
+      ND_IMAGECACHESIZE: "100MB"
+      
+      # Keep transcoded songs for a long time (prevents re-doing work)
+      ND_TRANSCODINGCACHESIZE: "2GB"
+      
+      # Use all CPU cores for transcoding (faster startup)
+      ND_TRANSCODINGPARALLELISM: 0
     volumes:
       - "./data/navidrome:/data"
       - "./music:/music"
