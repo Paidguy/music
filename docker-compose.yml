@@ -7,7 +7,6 @@ services:
       # Existing settings...
       ND_SCANSCHEDULE: 1h
       ND_LOGLEVEL: info
-      ND_BASEURL: "https://paidguy.duckdns.org"
       
       # --- NEW PERFORMANCE SETTINGS ---
       # Cache images in memory so scrolling is instant
