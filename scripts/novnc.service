@@ -1,12 +1,14 @@
 [Unit]
 Description=noVNC Bridge
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
-User=ubuntu
-ExecStart=/usr/bin/websockify --web /usr/share/novnc/ 6080 localhost:5901
+User=__NOVNC_USER__
+ExecStart=/usr/share/novnc/utils/launch.sh --listen 6080 --vnc localhost:5901
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
