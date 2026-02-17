@@ -1,0 +1,108 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate:
+    name: Validate Configuration Files
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Validate docker-compose.yml
+      run: |
+        docker compose config --quiet
+        echo "✅ docker-compose.yml is valid"
+
+    - name: Check docker-compose health checks
+      run: |
+        if grep -q "healthcheck:" docker-compose.yml; then
+          echo "✅ Health checks are configured"
+        else
+          echo "⚠️ Warning: No health checks found"
+          exit 1
+        fi
+
+    - name: Validate ND_SCANSCHEDULE format
+      run: |
+        if grep -q 'ND_SCANSCHEDULE: "@every' docker-compose.yml; then
+          echo "✅ ND_SCANSCHEDULE has correct format"
+        else
+          echo "❌ ND_SCANSCHEDULE missing @every prefix"
+          exit 1
+        fi
+
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run shellcheck
+      uses: ludeeus/action-shellcheck@master
+      with:
+        scandir: './scripts'
+        severity: warning
+
+  yaml-lint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: YAML Lint
+      uses: ibiqlik/action-yamllint@v3
+      with:
+        file_or_dir: docker-compose.yml
+        config_data: |
+          extends: default
+          rules:
+            line-length:
+              max: 120
+              level: warning
+            comments:
+              min-spaces-from-content: 1
+
+  documentation:
+    name: Check Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check README exists
+      run: |
+        if [ -f README.md ]; then
+          echo "✅ README.md exists"
+        else
+          echo "❌ README.md is missing"
+          exit 1
+        fi
+
+    - name: Check .env.example exists
+      run: |
+        if [ -f .env.example ]; then
+          echo "✅ .env.example exists"
+        else
+          echo "❌ .env.example is missing"
+          exit 1
+        fi
+
+    - name: Check for hardcoded domains in Caddyfile
+      run: |
+        if grep -E '\{.*DOMAIN.*\}' Caddyfile; then
+          echo "✅ Caddyfile uses environment variable for domain"
+        else
+          echo "⚠️ Warning: Caddyfile may have hardcoded domain"
+        fi

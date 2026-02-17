@@ -6,6 +6,9 @@ data/*
 !music/.gitkeep
 !data/.gitkeep
 
+# Ignore environment files with secrets
+.env
+
 # Ignore OS files
 .DS_Store
 Thumbs.db

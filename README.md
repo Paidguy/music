@@ -4,9 +4,10 @@
 
 ### *Self-Hosted Lossless Streaming & Virtual Studio - Deploy Anywhere*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Navidrome](https://img.shields.io/badge/Powered%20by-Navidrome-00C9FF)](https://www.navidrome.org/)
+[![CI/CD](https://github.com/Paidguy/music/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/Paidguy/music/actions)
 
 A flexible music streaming solution that combines a containerized server (Navidrome) with a browser-accessible virtual desktop for music management. Works on any Linux server - cloud VPS, home lab, or local machine.
 
@@ -92,6 +93,9 @@ Caddy sits at the edge, routing requests to either your music server or your vir
 - **💾 Persistent Storage** - Music survives container restarts
 - **📱 Mobile Ready** - Works with Amperfy, Symfonium, and more
 - **🔄 Docker-Based** - Easy updates and portable configuration
+- **🏥 Health Monitoring** - Built-in health checks for all services
+- **⚙️ Environment-Based Config** - Easy deployment with `.env` file
+- **✅ CI/CD Validated** - Automated testing ensures configuration quality
 
 ### What Makes It Different
 
@@ -432,6 +436,27 @@ Create your admin account on first visit.
 ---
 
 ## ⚙️ Configuration
+
+### Environment Variables
+
+This project now supports configuration via environment variables for easier deployment. Create a `.env` file from the example:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to set your domain:
+
+```bash
+# Your domain name (e.g., yourdomain.duckdns.org)
+DOMAIN=your-domain.duckdns.org
+
+# User/Group IDs for Syncthing (defaults to 1000)
+UID=1000
+GID=1000
+```
+
+The Caddyfile will automatically use the `DOMAIN` environment variable, so you don't need to manually edit it.
 
 ### Understanding docker-compose.yml
 
@@ -927,6 +952,35 @@ music-stack/
 
 ## 🔐 Advanced Topics
 
+### Monitoring Service Health
+
+All services now include health checks. Check their status:
+
+```bash
+# View health status of all services
+docker compose ps
+
+# Check specific service health
+docker inspect music-navidrome-1 --format='{{.State.Health.Status}}'
+
+# View health check logs
+docker inspect music-navidrome-1 --format='{{json .State.Health}}' | jq
+```
+
+Health check indicators:
+- **healthy** - Service is running correctly
+- **starting** - Service is starting up (wait up to 10s)
+- **unhealthy** - Service failed health checks (investigate logs)
+
+If a service becomes unhealthy:
+```bash
+# Check service logs
+docker compose logs navidrome
+
+# Restart the service
+docker compose restart navidrome
+```
+
 ### Automatic Startup on Boot
 
 **Make VNC start automatically:**
@@ -1184,19 +1238,30 @@ This project stands on the shoulders of excellent open-source software:
 
 ### Get Help
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Paidguy/music-stack/issues)
-- 💬 **Questions**: [GitHub Discussions](https://github.com/Paidguy/music-stack/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Paidguy/music/issues)
+- 💬 **Questions**: [GitHub Discussions](https://github.com/Paidguy/music/discussions)
 - 📖 **Navidrome Docs**: [navidrome.org/docs](https://www.navidrome.org/docs/)
 
 ### Contribute
 
-Found a bug? Have an improvement? Pull requests are welcome!
+Contributions are welcome! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+**Quick Start:**
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Make your changes and test them
+4. Run validations: `docker compose config --quiet` and `shellcheck scripts/*.sh`
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+All pull requests are automatically validated by our CI/CD pipeline which checks:
+- Docker Compose configuration validity
+- Shell script syntax with shellcheck
+- YAML formatting
+- Documentation completeness
+- Configuration best practices (e.g., ND_SCANSCHEDULE format)
 
 ---
 

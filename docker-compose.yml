@@ -5,7 +5,7 @@ services:
       - "4533:4533"
     environment:
       # Existing settings...
-      ND_SCANSCHEDULE: 1h
+      ND_SCANSCHEDULE: "@every 1h"
       ND_LOGLEVEL: info
       
       # --- NEW PERFORMANCE SETTINGS ---
@@ -21,6 +21,12 @@ services:
       - "./data/navidrome:/data"
       - "./music:/music"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4533/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   syncthing:
     image: syncthing/syncthing
@@ -36,11 +42,19 @@ services:
       - "22000:22000/tcp"
       - "22000:22000/udp"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8384/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   caddy:
     image: caddy:latest
     depends_on:
       - navidrome
+    environment:
+      - DOMAIN=${DOMAIN:-your-domain.duckdns.org}
     ports:
       - "80:80"
       - "443:443"
@@ -52,6 +66,12 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:2019/config/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 # This section below is what was missing
 volumes:
